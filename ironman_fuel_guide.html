@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ironman Fuel Guide</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a18;padding:1.25rem;max-width:680px;margin:0 auto;}
+.wrap{padding-bottom:3rem;}
+h1{font-size:21px;font-weight:500;margin-bottom:3px;}
+.tagline{font-size:13px;color:#73726c;margin-bottom:1.25rem;line-height:1.5;}
+.disclaimer{background:#fff;border:.5px solid rgba(0,0,0,.1);border-radius:8px;padding:.75rem 1rem;margin-bottom:1.25rem;font-size:11px;color:#888780;line-height:1.6;}
+.disclaimer strong{color:#5f5e5a;}
+
+/* nav tabs */
+.nav-tabs{display:flex;gap:6px;margin-bottom:1.5rem;border-bottom:.5px solid rgba(0,0,0,.1);padding-bottom:0;}
+.nav-tab{padding:8px 16px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#888780;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.nav-tab.active{color:#1a1a18;border-bottom-color:#1a1a18;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.step-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#888780;margin-bottom:.5rem;}
+.session-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-bottom:1.5rem;}
+.sess-btn{padding:10px 6px;border:.5px solid rgba(0,0,0,.12);border-radius:8px;cursor:pointer;background:white;text-align:center;transition:all .15s;}
+.sess-btn:hover{background:#f1efe8;}
+.sess-btn.active{background:#2c2c2a;border-color:#2c2c2a;}
+.sess-btn.active .sess-name,.sess-btn.active .sess-tag{color:white;}
+.sess-icon{font-size:18px;margin-bottom:3px;}
+.sess-name{font-size:12px;font-weight:500;color:#1a1a18;display:block;}
+.sess-tag{font-size:10px;color:#888780;display:block;margin-top:1px;}
+
+.row-inputs{display:flex;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap;}
+.input-block{flex:1;min-width:130px;background:white;border:.5px solid rgba(0,0,0,.12);border-radius:8px;padding:.75rem 1rem;}
+.input-block label{font-size:12px;color:#73726c;display:block;margin-bottom:6px;}
+.input-block input[type=range]{width:100%;margin-bottom:4px;}
+.input-block .val{font-size:14px;font-weight:500;color:#1a1a18;}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
+.toggle-label{font-size:13px;color:#73726c;}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:#d3d1c7;border-radius:22px;transition:.2s;}
+.slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:white;border-radius:50%;transition:.2s;}
+input:checked+.slider{background:#2c2c2a;}
+input:checked+.slider:before{transform:translateX(18px);}
+
+.output{display:none;}
+.output.show{display:block;}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:#888780;font-size:14px;background:white;border:.5px solid rgba(0,0,0,.1);border-radius:12px;}
+.session-header{background:#f1efe8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:12px;}
+.session-header-icon{font-size:26px;}
+.session-title{font-size:15px;font-weight:500;}
+.session-subtitle{font-size:12px;color:#73726c;margin-top:2px;}
+.energy-banner{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.energy-pill{flex:1;min-width:85px;background:white;border:.5px solid rgba(0,0,0,.1);border-radius:8px;padding:.7rem .875rem;text-align:center;}
+.energy-num{font-size:19px;font-weight:500;line-height:1;}
+.energy-label{font-size:11px;color:#73726c;margin-top:3px;}
+.flag{border-radius:8px;padding:.7rem 1rem;margin-bottom:.75rem;font-size:12px;line-height:1.6;}
+.flag-warn{background:#FCEBEB;color:#A32D2D;}
+.flag-good{background:#EAF3DE;color:#3B6D11;}
+.flag-info{background:#E6F1FB;color:#185FA5;}
+.timing-card{background:white;border:.5px solid rgba(0,0,0,.1);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.75rem;}
+.timing-header{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;}
+.timing-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-blue{background:#378ADD;}.dot-amber{background:#EF9F27;}.dot-green{background:#1D9E75;}.dot-purple{background:#7F77DD;}.dot-coral{background:#D85A30;}
+.timing-title{font-size:13px;font-weight:500;}
+.timing-time{font-size:11px;color:#888780;margin-left:auto;}
+.food-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:.5px solid rgba(0,0,0,.08);}
+.food-item:last-child{border-bottom:none;}
+.food-em{font-size:19px;flex-shrink:0;width:24px;text-align:center;line-height:1.3;}
+.food-body{flex:1;}
+.food-name{font-size:13px;font-weight:500;}
+.food-detail{font-size:11px;color:#73726c;margin-top:1px;line-height:1.4;}
+.macro-carb{font-size:11px;font-weight:500;color:#185FA5;margin-top:2px;}
+.macro-prot{font-size:11px;font-weight:500;color:#3B6D11;margin-top:2px;}
+.tip-box{background:#f1efe8;border-radius:8px;padding:.7rem 1rem;margin-top:.75rem;font-size:12px;color:#5f5e5a;line-height:1.6;}
+.tip-box strong{color:#2c2c2a;font-weight:500;}
+.gf-badge{background:#FAEEDA;color:#854F0B;font-size:10px;padding:1px 7px;border-radius:99px;display:inline-block;margin-left:4px;}
+
+/* race day tab */
+.race-day-intro{font-size:13px;color:#73726c;margin-bottom:1.25rem;line-height:1.6;}
+.race-phase{margin-bottom:1.25rem;}
+.race-phase-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#888780;margin-bottom:.5rem;}
+.race-card{background:white;border:.5px solid rgba(0,0,0,.1);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.75rem;}
+.race-card-header{display:flex;align-items:center;gap:8px;margin-bottom:.5rem;}
+.race-card-title{font-size:13px;font-weight:500;}
+.race-card-sub{font-size:12px;color:#73726c;margin-bottom:.75rem;line-height:1.5;}
+
+@media(max-width:480px){.session-grid{grid-template-columns:repeat(3,1fr);}.row-inputs{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Ironman Fuel Guide</h1>
+  <p class="tagline">Session fuelling + race day nutrition — based on your weight, in real food.</p>
+
+  <div class="disclaimer">
+    <strong>A guide, not a prescription.</strong> These recommendations are based on evidence-based sports nutrition guidelines and are designed to support your training. Always adjust based on how you feel, listen to your body, and work with your coach on session specifics. If you have any medical conditions or dietary needs beyond gluten free, speak to a registered dietitian.
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('training',this)">Training days</button>
+    <button class="nav-tab" onclick="switchTab('raceday',this)">Race day</button>
+  </div>
+
+  <!-- TRAINING TAB -->
+  <div class="tab-panel active" id="tab-training">
+
+    <div class="step-label">Your details</div>
+    <div class="row-inputs">
+      <div class="input-block">
+        <label>Body weight — <span class="val" id="v-weight">72 kg</span></label>
+        <input type="range" min="55" max="110" value="72" step="1" id="sl-weight" oninput="update()">
+      </div>
+      <div class="input-block">
+        <label>Weeks to race — <span class="val" id="v-weeks">16 wks</span></label>
+        <input type="range" min="4" max="30" value="16" step="1" id="sl-weeks" oninput="update()">
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <span class="toggle-label">Gluten free</span>
+      <label class="toggle">
+        <input type="checkbox" id="gf-toggle" onchange="update()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="step-label">Today's session</div>
+    <div class="session-grid" id="session-grid"></div>
+
+    <div class="output" id="output">
+      <div class="session-header">
+        <div class="session-header-icon" id="sess-icon"></div>
+        <div>
+          <div class="session-title" id="sess-title"></div>
+          <div class="session-subtitle" id="sess-subtitle"></div>
+        </div>
+      </div>
+      <div class="energy-banner" id="energy-banner"></div>
+      <div id="flag-area"></div>
+      <div id="timing-cards"></div>
+    </div>
+
+    <div class="empty-state" id="empty-state">↑ Pick your session above to get your fuel plan</div>
+
+  </div><!-- end training tab -->
+
+  <!-- RACE DAY TAB -->
+  <div class="tab-panel" id="tab-raceday">
+    <p class="race-day-intro">Your Ironman will take 8–16 hours. Nutrition is the fourth discipline — plan it, practice it in training, and never try anything new on race day.</p>
+
+    <div class="flag flag-info" style="margin-bottom:1.25rem;">
+      <strong>Golden rule:</strong> Everything here should be practiced in training first. Your gut needs to learn to absorb carbs while you're moving. Start now — not race week.
+    </div>
+
+    <!-- 3 DAYS OUT -->
+    <div class="race-phase">
+      <div class="race-phase-label">3 days out — carb loading begins</div>
+      <div class="race-card">
+        <div class="race-card-header"><div class="timing-dot dot-blue"></div><div class="race-card-title">Increase carbs to 8–10 g/kg per day</div></div>
+        <div class="race-card-sub">You don't need to deplete first — just increase. Full glycogen stores can be achieved in 1–3 days of high carb intake combined with reduced training (taper).</div>
+        <div class="food-item"><div class="food-em">🍝</div><div class="food-body"><div class="food-name">Large pasta meals</div><div class="food-detail">White pasta + simple tomato sauce + chicken. Twice a day if needed. Keep fat low.</div><div class="macro-carb">~80–100g carbs per bowl</div></div></div>
+        <div class="food-item"><div class="food-em">🍚</div><div class="food-body"><div class="food-name">White rice with every meal</div><div class="food-detail">White rice digests faster than brown — better for loading. 250g cooked portions.</div><div class="macro-carb">~55g carbs per portion</div></div></div>
+        <div class="food-item"><div class="food-em">🥯</div><div class="food-body"><div class="food-name">Bagels, white bread, bananas as snacks</div><div class="food-detail">Keep snacking on fast carbs between meals. Fruit juice is fine here.</div><div class="macro-carb">30–55g carbs per snack</div></div></div>
+        <div class="food-item"><div class="food-em">🥔</div><div class="food-body"><div class="food-name">Jacket potatoes</div><div class="food-detail">Easy, familiar, carb-dense. With a small amount of protein — not butter-heavy.</div><div class="macro-carb">~50g carbs</div></div></div>
+        <div class="tip-box"><strong>Keep fat and fibre low during these 3 days.</strong> High fibre veg, salads, and fatty foods slow digestion and take up stomach space you need for carbs. This is not the week for a big salad.<br><br><strong>GF note:</strong> Use GF pasta, GF bread, and rice as your main sources. Check all labels on sports products.</div>
+      </div>
+    </div>
+
+    <!-- NIGHT BEFORE -->
+    <div class="race-phase">
+      <div class="race-phase-label">Night before</div>
+      <div class="race-card">
+        <div class="race-card-header"><div class="timing-dot dot-amber"></div><div class="race-card-title">Simple carb dinner — nothing new</div></div>
+        <div class="race-card-sub">Familiar food only. This is not the night to try a new restaurant or a new recipe.</div>
+        <div class="food-item"><div class="food-em">🍝</div><div class="food-body"><div class="food-name">Pasta + simple tomato sauce + chicken or fish</div><div class="food-detail">No creamy sauces, no salad, no alcohol. Large portion of pasta, moderate protein.</div><div class="macro-carb">~90g carbs</div></div></div>
+        <div class="food-item"><div class="food-em">🍞</div><div class="food-body"><div class="food-name">Bread roll on the side</div><div class="food-detail">White roll, a little butter is fine. Extra carbs without thinking about it.</div><div class="macro-carb">~25g carbs</div></div></div>
+        <div class="tip-box"><strong>Sleep is nutrition.</strong> Get to bed early. A poor night's sleep the night before a race is normal and won't ruin performance — but you want to be rested going into it. Aim for 9pm.</div>
+      </div>
+    </div>
+
+    <!-- RACE MORNING -->
+    <div class="race-phase">
+      <div class="race-phase-label">Race morning — 2–3 hours before start</div>
+      <div class="race-card">
+        <div class="race-card-header"><div class="timing-dot dot-green"></div><div class="race-card-title">1–4 g/kg carbs — low fat, low fibre, familiar</div></div>
+        <div class="race-card-sub">This is the most important meal of the day. Stick to what you've practiced in training. No experimenting.</div>
+        <div class="food-item"><div class="food-em">🍞</div><div class="food-body"><div class="food-name">White toast + peanut butter + banana</div><div class="food-detail">2–3 slices white toast, thin spread of PB, 1 banana. Simple and proven.</div><div class="macro-carb">~75–90g carbs</div></div></div>
+        <div class="food-item"><div class="food-em">🥣</div><div class="food-body"><div class="food-name">Or: porridge + banana + honey</div><div class="food-detail">80g oats (GF if needed) + banana + tbsp honey. Warm, comforting, easy to eat when nervous.</div><div class="macro-carb">~85g carbs</div></div></div>
+        <div class="food-item"><div class="food-em">☕</div><div class="food-body"><div class="food-name">Black coffee (optional)</div><div class="food-detail">If you train with coffee, have it now. If you don't normally, don't start on race day.</div></div></div>
+        <div class="tip-box"><strong>Hydration:</strong> Drink 500ml water with breakfast. Then 5–10 ml/kg fluid in the 2 hours before start. Aim for pale yellow urine before you get in the water.<br><br><strong>15 mins before start:</strong> 1 gel + 200–300ml water. Tops up blood glucose right as the gun goes.</div>
+      </div>
+    </div>
+
+    <!-- SWIM -->
+    <div class="race-phase">
+      <div class="race-phase-label">The swim — ~1–1.5 hours</div>
+      <div class="race-card">
+        <div class="race-card-header"><div class="timing-dot dot-blue"></div><div class="race-card-title">Water only — no fuel needed in the water</div></div>
+        <div class="race-card-sub">You can't eat in the swim and you don't need to. Focus on pace and staying calm. Your pre-race carbs are doing the work.</div>
+        <div class="tip-box">Get out of the swim feeling in control. The bike is where the nutrition work starts. Take a moment in T1 to get a gel in before you mount the bike.</div>
+      </div>
+    </div>
+
+    <!-- BIKE -->
+    <div class="race-phase">
+      <div class="race-phase-label">The bike — 180km, ~5–8 hours</div>
+      <div class="race-card">
+        <div class="race-card-header"><div class="timing-dot dot-amber"></div><div class="race-card-title">60–90 g carbs per hour — start eating early</div></div>
+        <div class="race-card-sub">The bike is your kitchen. You have time and opportunity to eat. Don't wait until you're hungry — by then it's too late. Start fuelling in the first 30 minutes.</div>
+        <div class="food-item"><div class="food-em">🏅</div><div class="food-body"><div class="food-name">Gels — 1 every 30–45 mins</div><div class="food-detail">Glucose + fructose gels absorb faster (up to 90g/hr). Wash down with water, not sports drink — mixing sugars is fine, mixing liquids causes GI issues.</div><div class="macro-carb">~22g carbs per gel</div></div></div>
+        <div class="food-item"><div class="food-em">🥤</div><div class="food-body"><div class="food-name">Electrolyte drink on the bike</div><div class="food-detail">Don't drink plain water only. Mix with electrolyte tabs or use an isotonic drink. Sodium prevents hyponatraemia on long efforts in heat.</div><div class="macro-carb">30–35g carbs per 500ml</div></div></div>
+        <div class="food-item"><div class="food-em">🍌</div><div class="food-body"><div class="food-name">Real food in the first half of the bike</div><div class="food-detail">Banana, rice cakes, dates, or a soft energy bar. Easier on the gut early. Stomach gets more sensitive later in the race.</div><div class="macro-carb">25–35g carbs</div></div></div>
+        <div class="food-item"><div class="food-em">🍬</div><div class="food-body"><div class="food-name">Chews or blocks as an alternative to gels</div><div class="food-detail">Some people find chewing easier than gels on the bike. Practice with whatever you plan to use on race day.</div><div class="macro-carb">~25g carbs per serving</div></div></div>
+        <div class="tip-box"><strong>Caffeine strategy:</strong> Save your caffeine gels for the second half of the bike and the run. A 200mg caffeine hit around hour 3–5 of the bike is well-timed. Don't front-load caffeine — you'll need it more later.<br><br><strong>GF reminder:</strong> Check every gel, chew, and sports drink label. Many contain maltodextrin from wheat — not all are GF. Know your products before race day.</div>
+      </div>
+    </div>
+
+    <!-- RUN -->
+    <div class="race-phase">
+      <div class="race-phase-label">The run — 42km, ~4–6 hours</div>
+      <div class="race-card">
+        <div class="race-card-header"><div class="timing-dot dot-coral"></div><div class="race-card-title">30–60 g carbs per hour — gut gets harder here</div></div>
+        <div class="race-card-sub">The run is where nutrition falls apart for most people. Your gut has been working for 6+ hours. Keep it simple, keep it liquid if you can, and use the aid stations.</div>
+        <div class="food-item"><div class="food-em">🏅</div><div class="food-body"><div class="food-name">Gels — but slow down the rate slightly</div><div class="food-detail">1 gel every 40–60 mins on the run. Your gut may struggle to absorb as much as on the bike. Listen to it.</div><div class="macro-carb">~22g carbs per gel</div></div></div>
+        <div class="food-item"><div class="food-em">🥤</div><div class="food-body"><div class="food-name">Flat cola from aid stations</div><div class="food-detail">From about 30km onwards, flat cola is one of the best things you can take. Fast carbs, small amount of caffeine, settles the stomach. A race day classic.</div><div class="macro-carb">~26g carbs per 250ml</div></div></div>
+        <div class="food-item"><div class="food-em">🍗</div><div class="food-body"><div class="food-name">Chicken broth / savoury options at aid stations</div><div class="food-detail">If you're feeling nauseous of sweet things (very common late in an Ironman), savoury broth provides sodium and a mental reset. Take it.</div></div></div>
+        <div class="food-item"><div class="food-em">🍌</div><div class="food-body"><div class="food-name">Banana halves at aid stations</div><div class="food-detail">Easy to grab, easy to eat, familiar. Don't overthink it — if it's there and you feel okay, take it.</div><div class="macro-carb">~15g carbs</div></div></div>
+        <div class="tip-box"><strong>If GI issues hit:</strong> Back off the gels, switch to cola and broth, keep sipping electrolytes. Walk if you need to — it's better to walk for 5 minutes and recover than to blow up completely.<br><br><strong>Hydration on the run:</strong> Drink at every aid station. Small sips, don't gulp. Pouring water over your head helps with core temperature in heat — keep drinking for internal hydration separately.</div>
+      </div>
+    </div>
+
+    <!-- FINISH -->
+    <div class="race-phase">
+      <div class="race-phase-label">After the finish line</div>
+      <div class="race-card">
+        <div class="race-card-header"><div class="timing-dot dot-purple"></div><div class="race-card-title">Recovery starts now — but gently</div></div>
+        <div class="race-card-sub">Your gut has been through a lot. Don't force food immediately. Start with fluids and small amounts.</div>
+        <div class="food-item"><div class="food-em">🥤</div><div class="food-body"><div class="food-name">Electrolytes first</div><div class="food-detail">Rehydrate before you eat. Coconut water, electrolyte drink, or just water with a pinch of salt.</div></div></div>
+        <div class="food-item"><div class="food-em">🍫</div><div class="food-body"><div class="food-name">Chocolate milk or recovery shake when ready</div><div class="food-detail">When your stomach settles — 30–60 mins post finish. Protein + carbs to start the recovery process.</div><div class="macro-prot">~20–25g protein</div></div></div>
+        <div class="food-item"><div class="food-em">🍕</div><div class="food-body"><div class="food-name">Eat whatever you want tonight</div><div class="food-detail">Seriously. You just finished an Ironman. Have the pizza, have the burger. Your body will deal with it. Celebrate.</div></div></div>
+        <div class="tip-box"><strong>The days after:</strong> Don't restrict. Reverse out of the deficit and eat to maintenance or just above. Your body needs to repair — protein stays high, carbs come back in. Sleep as much as you can.</div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Products to check if you're gluten free:</strong> Always check the label on gels, chews, energy bars, and sports drinks before race day. Brands change formulations. Know exactly what you're using and carry your own if you can't guarantee what's available on course.
+    </div>
+
+  </div><!-- end race day tab -->
+
+</div><!-- end wrap -->
+
+<script>
+const sessions=[
+  {id:'rest',icon:'😴',name:'Rest day',tag:'Recovery',intensity:0,duration:0,type:'rest'},
+  {id:'swim-easy',icon:'🏊',name:'Easy swim',tag:'Technique / endurance',intensity:1,duration:45,type:'swim'},
+  {id:'swim-hard',icon:'🏊',name:'Hard swim',tag:'Intervals / sets',intensity:2,duration:60,type:'swim'},
+  {id:'run-easy',icon:'🏃',name:'Easy run',tag:'Zone 2 / recovery',intensity:1,duration:50,type:'run'},
+  {id:'run-intervals',icon:'🏃',name:'Interval run',tag:'800m reps / speed',intensity:3,duration:60,type:'run'},
+  {id:'run-tempo',icon:'🏃',name:'Tempo run',tag:'Sustained effort',intensity:2,duration:65,type:'run'},
+  {id:'run-long',icon:'🏃',name:'Long run',tag:'90 min+',intensity:2,duration:120,type:'run'},
+  {id:'bike-easy',icon:'🚴',name:'Easy ride',tag:'Zone 2 / spin',intensity:1,duration:60,type:'bike'},
+  {id:'bike-hard',icon:'🚴',name:'Hard ride',tag:'Intervals / hills',intensity:3,duration:90,type:'bike'},
+  {id:'bike-long',icon:'🚴',name:'Long ride',tag:'3–5 hours',intensity:2,duration:210,type:'bike'},
+  {id:'brick',icon:'🔥',name:'Brick session',tag:'Bike + run combined',intensity:3,duration:150,type:'brick'},
+  {id:'strength',icon:'💪',name:'S&C session',tag:'Strength & conditioning',intensity:2,duration:45,type:'strength'},
+];
+
+let selected=null;
+
+function switchTab(id,btn){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+function buildGrid(){
+  document.getElementById('session-grid').innerHTML=sessions.map(s=>`
+    <button class="sess-btn" onclick="selectSession('${s.id}')" id="btn-${s.id}">
+      <div class="sess-icon">${s.icon}</div>
+      <span class="sess-name">${s.name}</span>
+      <span class="sess-tag">${s.tag}</span>
+    </button>`).join('');
+}
+
+function selectSession(id){
+  selected=id;
+  document.querySelectorAll('.sess-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-'+id).classList.add('active');
+  update();
+}
+
+function update(){
+  const w=parseInt(document.getElementById('sl-weight').value);
+  const weeks=parseInt(document.getElementById('sl-weeks').value);
+  const gf=document.getElementById('gf-toggle').checked;
+  document.getElementById('v-weight').textContent=w+' kg';
+  document.getElementById('v-weeks').textContent=weeks+' wk'+(weeks===1?'':'s');
+  if(!selected){
+    document.getElementById('output').classList.remove('show');
+    document.getElementById('empty-state').style.display='block';
+    return;
+  }
+  document.getElementById('output').classList.add('show');
+  document.getElementById('empty-state').style.display='none';
+  renderOutput(sessions.find(s=>s.id===selected),w,weeks,gf);
+}
+
+function carbTarget(sess,w){
+  if(sess.type==='rest') return{pre2:0,pre1:0,during:0,post:0,daily:Math.round(w*3.5/5)*5};
+  const gPkg=sess.intensity===1?4.5:sess.intensity===2?5.5:7;
+  const daily=Math.round(w*gPkg/5)*5;
+  const pre2=sess.duration>=120?Math.round(w*1.5/5)*5:sess.duration>=75?Math.round(w*1.2/5)*5:Math.round(w*1.0/5)*5;
+  const pre1=sess.intensity>=2?Math.round(w*0.4/5)*5:0;
+  const during=sess.duration>=90?Math.round((sess.duration/60)*55/5)*5:0;
+  const post=Math.round(w*0.8/5)*5;
+  return{pre2,pre1,during,post,daily};
+}
+
+function renderOutput(sess,w,weeks,gf){
+  document.getElementById('sess-icon').textContent=sess.icon;
+  document.getElementById('sess-title').textContent=sess.name+(sess.type==='brick'?' (bike + run)':'');
+  const labels={0:'Rest & recover — repair and adaptation happen today',1:'Low intensity — fat burning zone, lighter carb needs',2:'Moderate effort — mixed fuel, carbs are important',3:'High intensity — carbs are essential, fuel up fully'};
+  document.getElementById('sess-subtitle').textContent=labels[sess.intensity];
+
+  const C=carbTarget(sess,w);
+  const protMeal=Math.round(w*0.35/5)*5;
+  const protDaily=Math.round(w*1.8/5)*5;
+
+  document.getElementById('energy-banner').innerHTML=`
+    <div class="energy-pill"><div class="energy-num">${C.daily}g</div><div class="energy-label">Carbs today</div></div>
+    <div class="energy-pill"><div class="energy-num">${protDaily}g</div><div class="energy-label">Protein today</div></div>
+    <div class="energy-pill"><div class="energy-num">${protMeal}g</div><div class="energy-label">Per meal</div></div>`;
+
+  let flags='';
+  if(sess.type==='rest') flags+=`<div class="flag flag-warn"><strong>Rest day reminder:</strong> Don't under-eat today. Your body is rebuilding right now. Keep protein high, drop carbs slightly — but protect your energy availability. It matters even when you're not training.</div>`;
+  if(weeks<=8&&sess.intensity>=2) flags+=`<div class="flag flag-good"><strong>${weeks} weeks to race — fuel your sessions fully.</strong> Now is not the time for aggressive restriction. Trust the process and eat to perform.</div>`;
+  if(gf) flags+=`<div class="flag flag-info"><strong>Gluten free mode on.</strong> GF food options shown throughout. Always check labels on gels, sports drinks, and energy bars — these vary by brand and formulation.</div>`;
+  document.getElementById('flag-area').innerHTML=flags;
+
+  let cards='';
+
+  if(sess.type==='rest'){
+    cards=`<div class="timing-card">
+      <div class="timing-header"><div class="timing-dot dot-purple"></div><div class="timing-title">Today is a rest day</div></div>
+      <div style="font-size:13px;color:#73726c;margin-bottom:10px;">Drop carbs slightly, keep protein consistent. This is where your body adapts — and where modest fat loss happens.</div>
+      <div class="food-item"><div class="food-em">🍗</div><div class="food-body"><div class="food-name">Protein at every meal</div><div class="food-detail">${protMeal}g per meal, ${protDaily}g across the day</div><div class="macro-prot">Muscle repair happens on rest days</div></div></div>
+      <div class="food-item"><div class="food-em">🥗</div><div class="food-body"><div class="food-name">Fill the plate with vegetables and healthy fats</div><div class="food-detail">Roasted veg, salads, avocado, olive oil, nuts — these fill the space carbs leave on rest days</div></div></div>
+      <div class="food-item"><div class="food-em">🥔</div><div class="food-body"><div class="food-name">Keep some carbs — just less</div><div class="food-detail">One portion with your main meal is enough. Target ${C.daily}g today.</div><div class="macro-carb">${C.daily}g carbs</div></div></div>
+      <div class="tip-box"><strong>The strategy in plain English:</strong> Fuel hard on training days. Modest deficit on rest days. That balance is how you lose fat and get fitter at the same time — without wrecking your training.</div>
+    </div>`;
+  } else {
+    // PRE 2-3h
+    cards+=`<div class="timing-card">
+      <div class="timing-header"><div class="timing-dot dot-blue"></div><div class="timing-title">2–3 hours before</div><div class="timing-time">Main pre-session meal</div></div>
+      <div style="font-size:12px;color:#73726c;margin-bottom:10px;">Aim for <strong>${C.pre2}g carbs</strong> + <strong>${protMeal}g protein.</strong> Keep fat and fibre low — easier on the stomach.${gf?'<span class="gf-badge">GF options</span>':''}</div>
+      <div class="food-item"><div class="food-em">🥣</div><div class="food-body"><div class="food-name">${gf?'GF porridge with banana':'Porridge with banana'}</div><div class="food-detail">${gf?'80g GF oats + 1 banana + drizzle of honey + water or milk':'80g oats + 1 banana + drizzle of honey'}</div><div class="macro-carb">~82g carbs</div></div></div>
+      ${!gf&&C.pre2>=70?`<div class="food-item"><div class="food-em">🥯</div><div class="food-body"><div class="food-name">Or: bagel + peanut butter + banana</div><div class="food-detail">1 plain bagel + thin spread PB + 1 banana</div><div class="macro-carb">~80g carbs</div></div></div>`:''}
+      ${gf&&C.pre2>=70?`<div class="food-item"><div class="food-em">🍚</div><div class="food-body"><div class="food-name">Or: white rice + banana + honey</div><div class="food-detail">150g cooked rice + banana + drizzle honey. Easy to digest.</div><div class="macro-carb">~80g carbs</div></div></div>`:''}
+      <div class="food-item"><div class="food-em">🍳</div><div class="food-body"><div class="food-name">Add ${protMeal}g protein alongside</div><div class="food-detail">2–3 eggs scrambled, Greek yoghurt on the side, or cottage cheese</div><div class="macro-prot">${protMeal}g protein</div></div></div>
+      <div class="tip-box"><strong>Hydration:</strong> Drink 400–600ml water with this meal. Don't skip this — starting a session already dehydrated will hurt your performance before you even begin.</div>
+    </div>`;
+
+    // PRE 30-60 mins
+    if(C.pre1>0){
+      cards+=`<div class="timing-card">
+        <div class="timing-header"><div class="timing-dot dot-amber"></div><div class="timing-title">30–60 mins before</div><div class="timing-time">Quick top-up</div></div>
+        <div style="font-size:12px;color:#73726c;margin-bottom:10px;">Fast carbs only — nothing heavy. Target <strong>${C.pre1}g carbs.</strong></div>
+        <div class="food-item"><div class="food-em">🍌</div><div class="food-body"><div class="food-name">Banana</div><div class="food-detail">1 medium banana — simple, proven, easy on the gut. Works for everyone.</div><div class="macro-carb">27g carbs</div></div></div>
+        ${!gf?`<div class="food-item"><div class="food-em">🍞</div><div class="food-body"><div class="food-name">Or: 1 slice white toast + jam</div><div class="food-detail">No butter — keep fat minimal this close to training</div><div class="macro-carb">~30g carbs</div></div></div>`:`<div class="food-item"><div class="food-em">🫐</div><div class="food-body"><div class="food-name">Or: rice cakes + honey</div><div class="food-detail">2 rice cakes with a drizzle of honey — GF and easy to digest</div><div class="macro-carb">~28g carbs</div></div></div>`}
+        <div class="tip-box">Sip 200–300ml water. Hot day or long session? Add an electrolyte tab now rather than waiting.</div>
+      </div>`;
+    }
+
+    // DURING
+    if(C.during>0){
+      cards+=`<div class="timing-card">
+        <div class="timing-header"><div class="timing-dot dot-green"></div><div class="timing-title">During the session</div><div class="timing-time">Fuel as you go</div></div>
+        <div style="font-size:12px;color:#73726c;margin-bottom:10px;">Target <strong>~${C.during}g carbs</strong> across the session. Start after the first hour — don't wait until you feel empty. Practice this in training now so your gut is ready on race day.</div>
+        <div class="food-item"><div class="food-em">🏅</div><div class="food-body"><div class="food-name">Energy gels${gf?' — check label is GF':''}</div><div class="food-detail">1 gel every 30–45 min after the first hour. Wash down with water. Practice with the brand you'll use on race day.</div><div class="macro-carb">~22g carbs per gel</div></div></div>
+        <div class="food-item"><div class="food-em">🥤</div><div class="food-body"><div class="food-name">Electrolyte drink — not just plain water</div><div class="food-detail">Sip throughout. Sodium is critical on sessions over 90 min — it prevents cramping and hyponatraemia.</div><div class="macro-carb">~30–35g carbs per 500ml</div></div></div>
+        ${sess.type==='brick'||sess.id==='bike-long'?`<div class="food-item"><div class="food-em">🍌</div><div class="food-body"><div class="food-name">Real food on the bike section</div><div class="food-detail">Banana, dates, or rice cake in your back pocket. Real food is easier on the gut in the first half of a long ride.</div><div class="macro-carb">~25–35g carbs</div></div></div>`:''}
+        <div class="tip-box"><strong>Gut training is non-negotiable for Ironman.</strong> Your stomach needs to learn to absorb carbs while your body is working hard. If you skip gut training, race day will punish you. Start practicing now — every long session is an opportunity.</div>
+      </div>`;
+    } else {
+      cards+=`<div class="timing-card">
+        <div class="timing-header"><div class="timing-dot dot-green"></div><div class="timing-title">During the session</div></div>
+        <div style="font-size:13px;color:#73726c;">Water only — this session is short enough that you don't need carbs during it. Stay hydrated, that's all that's needed.</div>
+      </div>`;
+    }
+
+    // POST
+    cards+=`<div class="timing-card">
+      <div class="timing-header"><div class="timing-dot dot-purple"></div><div class="timing-title">Within 30–60 mins after</div><div class="timing-time">Recovery window</div></div>
+      <div style="font-size:12px;color:#73726c;margin-bottom:10px;">Protein first — always. Then carbs based on how hard the session was. You don't need a huge meal immediately, but don't skip this window.</div>
+      ${sess.intensity<=1?
+        `<div class="food-item"><div class="food-em">🥛</div><div class="food-body"><div class="food-name">Greek yoghurt + fruit</div><div class="food-detail">200g yoghurt + handful of berries. Light recovery for an easy session.</div><div class="macro-prot">20g protein</div></div></div>
+        <div class="food-item"><div class="food-em">🍗</div><div class="food-body"><div class="food-name">Normal meal within the hour</div><div class="food-detail">Protein + veg + small carb portion. Don't over-eat after a light session.</div></div></div>`:
+        `${!gf?`<div class="food-item"><div class="food-em">🍫</div><div class="food-body"><div class="food-name">Chocolate milk immediately after</div><div class="food-detail">300ml — protein + carbs in one hit. The original recovery drink and still one of the best.</div><div class="macro-prot">8g protein · 28g carbs</div></div></div>`:
+        `<div class="food-item"><div class="food-em">🥛</div><div class="food-body"><div class="food-name">Protein shake + banana immediately after</div><div class="food-detail">1 scoop plant protein (check GF label) + 1 banana — quick and effective.</div><div class="macro-prot">25g protein · 27g carbs</div></div></div>`}
+        <div class="food-item"><div class="food-em">🍗</div><div class="food-body"><div class="food-name">Proper meal within 1–2 hours</div><div class="food-detail">Chicken or salmon + white rice or jacket potato + roasted veg</div><div class="macro-prot">${protMeal}g protein · ${C.post}g carbs</div></div></div>
+        <div class="food-item"><div class="food-em">🐟</div><div class="food-body"><div class="food-name">Or: salmon + sweet potato + greens</div><div class="food-detail">Anti-inflammatory omega-3 fats from salmon support recovery — especially useful after long sessions</div></div></div>`
+      }
+      <div class="tip-box"><strong>Protein → always. Carbs → earn them.</strong> After a short easy session, keep carbs moderate. After a long or hard session, eat them fully — this is not the moment to restrict. That's what rest days are for.</div>
+    </div>`;
+  }
+
+  document.getElementById('timing-cards').innerHTML=cards;
+}
+
+buildGrid();
+</script>
+</body>
+</html>
