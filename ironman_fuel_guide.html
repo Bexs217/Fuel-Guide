@@ -101,6 +101,7 @@ input:checked+.slider:before{transform:translateX(18px);}
   <!-- NAV TABS -->
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('training',this)">Training days</button>
+    <button class="nav-tab" onclick="switchTab('bigday',this)">Big day</button>
     <button class="nav-tab" onclick="switchTab('raceday',this)">Race day</button>
   </div>
 
@@ -146,6 +147,42 @@ input:checked+.slider:before{transform:translateX(18px);}
     <div class="empty-state" id="empty-state">↑ Pick your session above to get your fuel plan</div>
 
   </div><!-- end training tab -->
+
+  <!-- BIG DAY TAB -->
+  <div class="tab-panel" id="tab-bigday">
+    <p class="race-day-intro">Doing more than one session back-to-back — like a swim straight into a bike, or a full practice day? Build your combined fuel plan here. One plan for the whole block, not three separate ones.</p>
+
+    <div class="step-label">Your details</div>
+    <div class="row-inputs">
+      <div class="input-block">
+        <label>Body weight — <span class="val" id="bd-v-weight">72 kg</span></label>
+        <input type="range" min="55" max="110" value="72" step="1" id="bd-sl-weight" oninput="bdUpdate()">
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Gluten free</span>
+      <label class="toggle">
+        <input type="checkbox" id="bd-gf-toggle" onchange="bdUpdate()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="step-label">Pick your sessions in order (tap to add)</div>
+    <div class="session-grid" id="bd-session-grid"></div>
+
+    <div id="bd-selected-area" style="display:none;margin-bottom:1.25rem;">
+      <div class="step-label">Your big day plan (tap to remove)</div>
+      <div id="bd-selected-list" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.5rem;"></div>
+      <div style="font-size:12px;color:#73726c;" id="bd-total-line"></div>
+    </div>
+
+    <div class="output" id="bd-output">
+      <div id="bd-cards"></div>
+    </div>
+
+    <div class="empty-state" id="bd-empty">↑ Add your sessions in the order you'll do them</div>
+
+  </div><!-- end big day tab -->
 
   <!-- RACE DAY TAB -->
   <div class="tab-panel" id="tab-raceday">
@@ -412,7 +449,132 @@ function renderOutput(sess,w,weeks,gf){
   document.getElementById('timing-cards').innerHTML=cards;
 }
 
+// ===== BIG DAY MODE =====
+const bdSessions=[
+  {id:'bd-swim-easy',icon:'🏊',name:'Easy swim',tag:'~45 min',mins:45,intensity:1},
+  {id:'bd-swim-hard',icon:'🏊',name:'Hard swim',tag:'~60 min',mins:60,intensity:2},
+  {id:'bd-run-easy',icon:'🏃',name:'Easy run',tag:'~50 min',mins:50,intensity:1},
+  {id:'bd-run-hard',icon:'🏃',name:'Hard run',tag:'Intervals / tempo ~60 min',mins:60,intensity:3},
+  {id:'bd-run-long',icon:'🏃',name:'Long run',tag:'~2 hrs',mins:120,intensity:2},
+  {id:'bd-bike-easy',icon:'🚴',name:'Easy ride',tag:'~60 min',mins:60,intensity:1},
+  {id:'bd-bike-hard',icon:'🚴',name:'Hard ride',tag:'~90 min',mins:90,intensity:3},
+  {id:'bd-bike-long',icon:'🚴',name:'Long ride',tag:'3–5 hrs',mins:210,intensity:2},
+  {id:'bd-strength',icon:'💪',name:'S&C',tag:'~45 min',mins:45,intensity:2},
+];
+
+let bdPicked=[];
+
+function bdBuildGrid(){
+  document.getElementById('bd-session-grid').innerHTML=bdSessions.map(s=>`
+    <button class="sess-btn" onclick="bdAdd('${s.id}')">
+      <div class="sess-icon">${s.icon}</div>
+      <span class="sess-name">${s.name}</span>
+      <span class="sess-tag">${s.tag}</span>
+    </button>`).join('');
+}
+
+function bdAdd(id){
+  if(bdPicked.length>=4){alert('Maximum 4 sessions in one block — if you are doing more than that, speak to your coach!');return;}
+  bdPicked.push(id);
+  bdUpdate();
+}
+
+function bdRemove(idx){
+  bdPicked.splice(idx,1);
+  bdUpdate();
+}
+
+function bdUpdate(){
+  const w=parseInt(document.getElementById('bd-sl-weight').value);
+  const gf=document.getElementById('bd-gf-toggle').checked;
+  document.getElementById('bd-v-weight').textContent=w+' kg';
+
+  if(bdPicked.length===0){
+    document.getElementById('bd-selected-area').style.display='none';
+    document.getElementById('bd-output').classList.remove('show');
+    document.getElementById('bd-empty').style.display='block';
+    return;
+  }
+
+  document.getElementById('bd-selected-area').style.display='block';
+  document.getElementById('bd-empty').style.display='none';
+  document.getElementById('bd-output').classList.add('show');
+
+  const picked=bdPicked.map(id=>bdSessions.find(s=>s.id===id));
+  document.getElementById('bd-selected-list').innerHTML=picked.map((s,i)=>`
+    <button onclick="bdRemove(${i})" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:#2c2c2a;color:white;border:none;border-radius:99px;font-size:12px;cursor:pointer;">
+      ${s.icon} ${i+1}. ${s.name} ✕
+    </button>`).join('');
+
+  const totalMins=picked.reduce((a,s)=>a+s.mins,0);
+  const maxIntensity=Math.max(...picked.map(s=>s.intensity));
+  const hours=Math.floor(totalMins/60);
+  const mins=totalMins%60;
+  document.getElementById('bd-total-line').textContent=`Total: ~${hours>0?hours+'h ':''}${mins>0?mins+'m':''} · ${picked.length} session${picked.length>1?'s':''} back-to-back`;
+
+  // Combined fuel logic
+  // Pre meal scales with total block duration
+  const pre2=totalMins>=180?Math.round(w*1.8/5)*5:totalMins>=120?Math.round(w*1.5/5)*5:Math.round(w*1.2/5)*5;
+  const pre1=maxIntensity>=2?Math.round(w*0.4/5)*5:0;
+  // During: only counts time past first 60-75 mins, at 45-60g/h depending on intensity
+  const fuelledMins=Math.max(0,totalMins-60);
+  const ratePerHour=maxIntensity>=3?60:totalMins>=180?60:45;
+  const during=Math.round((fuelledMins/60)*ratePerHour/5)*5;
+  const post=Math.round(w*1.2/5)*5;
+  const protMeal=Math.round(w*0.35/5)*5;
+  // daily carbs: big days warrant high intake
+  const dailyG=totalMins>=240?8:totalMins>=150?7:6;
+  const daily=Math.round(w*dailyG/5)*5;
+  const protDaily=Math.round(w*1.8/5)*5;
+
+  let cards=`
+    <div class="energy-banner">
+      <div class="energy-pill"><div class="energy-num">${daily}g</div><div class="energy-label">Carbs today</div></div>
+      <div class="energy-pill"><div class="energy-num">${protDaily}g</div><div class="energy-label">Protein today</div></div>
+      <div class="energy-pill"><div class="energy-num">${during}g</div><div class="energy-label">During the block</div></div>
+    </div>
+
+    <div class="flag flag-good"><strong>Big training day — this is a fully fuelled day.</strong> No deficit today. Under-fuelling a multi-session day leads to terrible sessions, deep fatigue, and rebound hunger tomorrow. Eat to perform.</div>
+
+    <div class="timing-card">
+      <div class="timing-header"><div class="timing-dot dot-blue"></div><div class="timing-title">2–3 hours before you start</div><div class="timing-time">One meal for the whole block</div></div>
+      <div style="font-size:12px;color:#73726c;margin-bottom:10px;">This meal fuels the entire block, so it's bigger than a normal pre-session meal. Aim for <strong>${pre2}g carbs</strong> + <strong>${protMeal}g protein.</strong> Low fat, low fibre.${gf?'<span class="gf-badge">GF options</span>':''}</div>
+      <div class="food-item"><div class="food-em">🥣</div><div class="food-body"><div class="food-name">${gf?'Big bowl of GF porridge + banana + honey':'Big bowl of porridge + banana + honey'}</div><div class="food-detail">${gf?'100g GF oats':'100g oats'} + 1 large banana + 1 tbsp honey + milk</div><div class="macro-carb">~100g carbs</div></div></div>
+      ${!gf?`<div class="food-item"><div class="food-em">🍞</div><div class="food-body"><div class="food-name">+ 1–2 slices white toast with jam if the block is 3+ hours</div><div class="food-detail">Top up to your target — bigger blocks need bigger breakfasts</div><div class="macro-carb">~30g carbs per slice</div></div></div>`:`<div class="food-item"><div class="food-em">🍚</div><div class="food-body"><div class="food-name">+ rice cakes with honey if the block is 3+ hours</div><div class="food-detail">2–3 rice cakes to top up to your target</div><div class="macro-carb">~10g carbs each</div></div></div>`}
+      <div class="food-item"><div class="food-em">🍳</div><div class="food-body"><div class="food-name">2 eggs or Greek yoghurt alongside</div><div class="food-detail">Keep protein moderate pre-session — too much slows digestion</div><div class="macro-prot">~${protMeal}g protein</div></div></div>
+      <div class="tip-box"><strong>Hydration:</strong> 500–600ml water with this meal, then keep sipping until you start. Starting a long block dehydrated is unrecoverable.</div>
+    </div>
+
+    ${pre1>0?`<div class="timing-card">
+      <div class="timing-header"><div class="timing-dot dot-amber"></div><div class="timing-title">30 mins before</div><div class="timing-time">Top-up</div></div>
+      <div style="font-size:12px;color:#73726c;margin-bottom:10px;">Quick <strong>${pre1}g carbs</strong> to top off before a hard block.</div>
+      <div class="food-item"><div class="food-em">🍌</div><div class="food-body"><div class="food-name">Banana or ${gf?'2 rice cakes + honey':'1 slice toast + jam'}</div><div class="food-detail">Simple and fast — nothing heavy now</div><div class="macro-carb">~${pre1}g carbs</div></div></div>
+    </div>`:''}
+
+    <div class="timing-card">
+      <div class="timing-header"><div class="timing-dot dot-green"></div><div class="timing-title">During the block</div><div class="timing-time">~${during}g carbs total</div></div>
+      <div style="font-size:12px;color:#73726c;margin-bottom:10px;">Start fuelling after the first 45–60 mins, then aim for <strong>${ratePerHour}g carbs per hour</strong> for the rest of the block. Use the transitions between sessions as fuelling windows.</div>
+      <div class="food-item"><div class="food-em">🔄</div><div class="food-body"><div class="food-name">Use transitions to fuel</div><div class="food-detail">The gap between sessions is your aid station. Gel + few sips of electrolyte drink every time you switch discipline.</div><div class="macro-carb">~25–30g per transition</div></div></div>
+      <div class="food-item"><div class="food-em">🏅</div><div class="food-body"><div class="food-name">Gels${gf?' (check GF label)':''} on the move</div><div class="food-detail">1 every 30–45 min during longer sessions within the block — especially the bike</div><div class="macro-carb">~22g carbs each</div></div></div>
+      <div class="food-item"><div class="food-em">🥤</div><div class="food-body"><div class="food-name">Electrolyte drink throughout</div><div class="food-detail">Not plain water. Multi-hour blocks need sodium. Keep a bottle accessible in every session.</div><div class="macro-carb">~30g carbs per 500ml</div></div></div>
+      <div class="food-item"><div class="food-em">🍌</div><div class="food-body"><div class="food-name">Real food on the bike sections</div><div class="food-detail">Banana, dates, ${gf?'GF flapjack':'soft flapjack'} — the bike is the easiest place to eat real food</div><div class="macro-carb">~25–35g carbs</div></div></div>
+      <div class="tip-box"><strong>This is exactly how race day works</strong> — so treat every big training day as a nutrition rehearsal. Same products, same timing, same amounts you plan to race with.</div>
+    </div>
+
+    <div class="timing-card">
+      <div class="timing-header"><div class="timing-dot dot-purple"></div><div class="timing-title">Straight after you finish</div><div class="timing-time">Recovery is urgent today</div></div>
+      <div style="font-size:12px;color:#73726c;margin-bottom:10px;">After a multi-session block your glycogen is deeply depleted. Recovery starts within 30 minutes — don't drift home and forget to eat.</div>
+      ${!gf?`<div class="food-item"><div class="food-em">🍫</div><div class="food-body"><div class="food-name">Chocolate milk immediately</div><div class="food-detail">500ml after a big block — protein + carbs + fluid + sodium in one</div><div class="macro-prot">~14g protein · 48g carbs</div></div></div>`:`<div class="food-item"><div class="food-em">🥛</div><div class="food-body"><div class="food-name">Protein shake + 2 bananas immediately</div><div class="food-detail">1 scoop (check GF) + bananas — fast and effective</div><div class="macro-prot">~25g protein · 54g carbs</div></div></div>`}
+      <div class="food-item"><div class="food-em">🍗</div><div class="food-body"><div class="food-name">Big proper meal within 1–2 hours</div><div class="food-detail">Chicken or salmon + large portion white rice or pasta${gf?' (GF)':''} + veg. Don't skimp — target ~${post}g carbs in this meal.</div><div class="macro-prot">${protMeal}g protein · ~${post}g carbs</div></div></div>
+      <div class="food-item"><div class="food-em">🧀</div><div class="food-body"><div class="food-name">Evening: cottage cheese or Greek yoghurt before bed</div><div class="food-detail">Slow-release casein protein supports overnight muscle repair after a big day</div><div class="macro-prot">~20g protein</div></div></div>
+      <div class="tip-box"><strong>Tomorrow matters too.</strong> The day after a big block, eat normally — don't compensate by restricting. Deep glycogen refill takes 24–48 hours and your next session depends on it.</div>
+    </div>`;
+
+  document.getElementById('bd-cards').innerHTML=cards;
+}
+
 buildGrid();
+bdBuildGrid();
 </script>
 </body>
 </html>
